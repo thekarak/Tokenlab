@@ -12,7 +12,14 @@
 
 <header class="top">
   <div class="brand"><span class="mark">*</span> Tokenlab</div>
-  <div class="top-right"><span id="accBadge">ready</span><span class="dot">·</span><span id="modelCountTop">60+ models · Sept 2026</span><span class="dot">·</span><button id="btnGuide" title="Replay the first-run guide">? Guide</button></div>
+  <div class="top-right">
+    <div class="live-clock" id="liveClock" title="Live digital clock (click to toggle 12h/24h)">
+      <span class="clock-live"><span class="clock-dot"></span>LIVE</span>
+      <span class="clock-time" id="clockTime">--:--:--</span>
+      <span class="clock-sep">·</span>
+      <span class="clock-date" id="clockDate">---, -- --- ----</span>
+    </div>
+  </div>
 </header>
 
 <main>
@@ -150,7 +157,7 @@
     </table></div>
   </section>
 
-  <p class="foot"><span id="statusMsg">Ready.</span> · 100% local · prices Sept 2026 / 1M tokens</p>
+  <p class="foot"><span id="statusMsg">Ready.</span> · 100% local · prices Sept 2026 / 1M tokens · <button id="btnGuide" class="btn-foot-guide" title="Replay user guide">? Quick Guide</button></p>
 </main>
 
 <div class="overlay hidden" id="welcomeOverlay">

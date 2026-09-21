@@ -253,13 +253,57 @@
       if (b) { $("costModel").value = b.getAttribute("data-use"); updateCost(); window.scrollTo({ top: 0, behavior: "smooth" }); setStatus("Model loaded into calculator."); }
     });
 
-    $("inputText").value = "Hello world! Paste any prompt here to count tokens, convert words to tokens, and price it.";
-    if ($("modelCountTop")) $("modelCountTop").textContent = MODELS.length + " models · Sept 2026";
+    // Live digital clock & date in dashboard header
+    function initLiveClock() {
+      var timeEl = $("clockTime");
+      var dateEl = $("clockDate");
+      var clockEl = $("liveClock");
+      if (!timeEl && !dateEl) return;
+
+      var is24Hour = false;
+      function pad(n) { return n < 10 ? "0" + n : n; }
+
+      function update() {
+        var now = new Date();
+        var hours = now.getHours();
+        var minutes = now.getMinutes();
+        var seconds = now.getSeconds();
+
+        var timeStr = "";
+        if (is24Hour) {
+          timeStr = pad(hours) + ":" + pad(minutes) + ":" + pad(seconds);
+        } else {
+          var ampm = hours >= 12 ? "PM" : "AM";
+          var h12 = hours % 12;
+          if (h12 === 0) h12 = 12;
+          timeStr = pad(h12) + ":" + pad(minutes) + ":" + pad(seconds) + " " + ampm;
+        }
+
+        var days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        var dateStr = days[now.getDay()] + ", " + pad(now.getDate()) + " " + months[now.getMonth()] + " " + now.getFullYear();
+
+        if (timeEl) timeEl.textContent = timeStr;
+        if (dateEl) dateEl.textContent = dateStr;
+      }
+
+      if (clockEl) {
+        clockEl.addEventListener("click", function () {
+          is24Hour = !is24Hour;
+          update();
+        });
+      }
+
+      update();
+      setInterval(update, 1000);
+    }
+
+    initLiveClock();
     ensureBase("o200k_base");
     renderTable(); linkedConvert("tokens", true); refreshTokenizer(); doW2T(); doT2W(); updateCost();
     setStatus("Ready. " + MODELS.length + " models loaded.");
     if (!localStorage.getItem("tokenlab_seen")) $("welcomeOverlay").classList.remove("hidden");
-    $("btnGuide").addEventListener("click", function () { $("welcomeOverlay").classList.remove("hidden"); });
+    if ($("btnGuide")) $("btnGuide").addEventListener("click", function () { $("welcomeOverlay").classList.remove("hidden"); });
     function closeWelcome(persist) {
       $("welcomeOverlay").classList.add("hidden");
       if (persist || ($("chkWelcomeHide") && $("chkWelcomeHide").checked)) { try { localStorage.setItem("tokenlab_seen", "1"); } catch (e) {} }
