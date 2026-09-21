@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tokenlab — simple tokenizer + both-way converter (60+ models)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="brand"><span class="mark">*</span> Tokenlab</div>
+  <div class="top-right"><span id="accBadge">ready</span><span class="dot">·</span><span id="modelCountTop">60+ models · Sept 2026</span><span class="dot">·</span><button id="btnGuide" title="Replay the first-run guide">? Guide</button></div>
+</header>
+
+<main>
+  <p class="lede">Paste text, see tokens — like OpenAI's tokenizer, in Claude clothes. Convert <b>words ⇄ tokens</b> both ways, estimate cost.</p>
+
+  <!-- 1. TOKENIZER -->
+  <section class="card">
+    <div class="split">
+      <div class="left">
+        <textarea id="inputText" placeholder="Type or paste text here…"></textarea>
+        <div class="toolbar">
+          <select id="encSelect" title="Tokenizer">
+            <optgroup label="OpenAI standard (tiktoken)">
+              <option value="o200k_base">o200k_base · GPT-4o / 5 / 6</option>
+              <option value="cl100k_base">cl100k_base · GPT-3.5 / 4</option>
+              <option value="p50k_base">p50k_base · Codex</option>
+              <option value="r50k_base">r50k_base · GPT-3</option>
+            </optgroup>
+            <optgroup label="Other families (approximation)">
+              <option value="claude">Claude · Anthropic (approx)</option>
+              <option value="gemini">Gemini · Google (approx)</option>
+              <option value="llama">Llama · Meta (approx)</option>
+              <option value="mistral">Mistral / Mixtral (approx)</option>
+              <option value="deepseek">DeepSeek (approx)</option>
+              <option value="qwen">Qwen · Alibaba (approx)</option>
+              <option value="grok">Grok · xAI (approx)</option>
+              <option value="mimo">MiMo · Xiaomi (approx)</option>
+              <option value="minimax">MiniMax (approx)</option>
+            </optgroup>
+            <optgroup label="Simple heuristics">
+              <option value="chars">chars ÷ 4 (rough)</option>
+              <option value="words">words × 1.33 (rough)</option>
+            </optgroup>
+          </select>
+          <button id="btnSample">Sample</button>
+          <button id="btnClear">Clear</button>
+          <button id="btnCopyText">Copy</button>
+          <button id="btnUpload">Open file</button>
+          <input type="file" id="fileInput" accept=".txt,.md,.json,.csv" hidden>
+        </div>
+        <div class="tokens" id="tokView"></div>
+        <div class="toolbar">
+          <button id="btnCopy" class="primary">Copy token IDs</button>
+          <input type="text" id="decodeInput" placeholder="paste IDs to decode → then Decode">
+          <button id="btnDecode">Decode</button>
+        </div>
+        <div class="ids" id="tokIds">–</div>
+        <div class="ids hidden" id="decodeOut">–</div>
+      </div>
+      <aside class="stats">
+        <div class="bignum"><span id="stTokens">0</span><label>tokens</label></div>
+        <div class="srow"><span>Words</span><b id="stWords">0</b></div>
+        <div class="srow"><span>Characters</span><b id="stChars">0</b></div>
+        <div class="srow"><span>Sentences</span><b id="stSent">0</b></div>
+        <div class="srow"><span>Density</span><b id="stRatio">–</b></div>
+        <div class="srow"><span>Heuristic</span><b id="stHeu">–</b></div>
+        <p class="hint">1 token ≈ 4 chars ≈ 0.75 words</p>
+      </aside>
+    </div>
+  </section>
+
+  <!-- 2. BOTH-WAY CONVERTER -->
+  <section class="card">
+    <h2>Both-way converter</h2>
+    <p class="sub">Type in any linked box <i>or</i> use the one-click boxes. Both directions, always in sync.</p>
+    <div class="conv3">
+      <label>Tokens<input type="number" id="cvTokens" value="100"></label>
+      <span class="swap">⇄</span>
+      <label>Words<input type="number" id="cvWords" value="75"></label>
+      <span class="swap">⇄</span>
+      <label>Characters<input type="number" id="cvChars" value="400"></label>
+    </div>
+    <p class="line"><b id="cvPages">–</b></p>
+    <div class="twocol">
+      <div class="mini">
+        <h3>Words → Tokens</h3>
+        <div class="toolbar"><input type="number" id="w2tIn" value="1000" style="flex:1"><button id="btnW2T" class="primary">Convert →</button></div>
+        <p class="out" id="w2tOut">–</p>
+      </div>
+      <div class="mini">
+        <h3>Tokens → Words</h3>
+        <div class="toolbar"><input type="number" id="t2wIn" value="1333" style="flex:1"><button id="btnT2W" class="primary">Convert →</button></div>
+        <p class="out" id="t2wOut">–</p>
+      </div>
+    </div>
+    <div class="toolbar">
+      <label class="sub">Reply length
+        <select id="respStyle"><option value="concise">Concise</option><option value="balanced" selected>Balanced</option><option value="detailed">Detailed</option></select>
+      </label>
+      <span class="sub" id="cvOutEst">–</span>
+      <button id="btnUseTok">Send to cost ↓</button>
+      <button id="preset500">500-word email</button>
+      <button id="preset2000">2k-word blog</button>
+      <button id="preset80k">80k-word book</button>
+      <button id="preset128k">128K ctx</button>
+    </div>
+  </section>
+
+  <!-- 3. COST -->
+  <section class="card">
+    <h2>Cost</h2>
+    <div class="toolbar">
+      <select id="costModel" style="flex:1;min-width:220px"></select>
+      <button id="btnSync">Sync from text</button>
+      <button id="btnResetCost">Reset</button>
+    </div>
+    <div class="grid3">
+      <label>Input tokens<input type="number" id="calcIn" value="0"></label>
+      <label>Output tokens<input type="number" id="calcOut" value="500"></label>
+      <label>Requests / mo<input type="number" id="calcReq" value="1000"></label>
+    </div>
+    <p class="sub" id="costCtx"></p>
+    <div class="bar"><i id="costBarFill"></i></div>
+    <div class="prices">
+      <div><b id="costPerReq">$0</b><span>/ request</span></div>
+      <div><b id="costMonthly">$0</b><span>/ month</span></div>
+      <div><b id="costYearly">$0</b><span>/ year</span></div>
+    </div>
+    <h3>Cheapest 5 for this workload</h3>
+    <div id="cmpList"></div>
+  </section>
+
+  <!-- 4. MODELS -->
+  <section class="card">
+    <h2>Latest models <span class="sub" id="mCount"></span></h2>
+    <div class="toolbar">
+      <input type="text" id="mSearch" placeholder="Search…" style="flex:2;min-width:160px">
+      <select id="mProvider"></select>
+      <select id="mType"><option value="">Open + Closed</option><option value="open">Open only</option><option value="closed">Closed only</option></select>
+      <select id="mSort"><option value="price">Cheapest input</option><option value="outprice">Cheapest output</option><option value="context">Biggest context</option><option value="name">A–Z</option></select>
+    </div>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Model</th><th>Provider</th><th>Type</th><th>Context</th><th>In/1M</th><th>Out/1M</th><th>Best for</th><th></th></tr></thead>
+      <tbody id="mBody"></tbody>
+    </table></div>
+  </section>
+
+  <p class="foot"><span id="statusMsg">Ready.</span> · 100% local · prices Sept 2026 / 1M tokens</p>
+</main>
+
+<div class="overlay hidden" id="welcomeOverlay">
+  <div class="welcome">
+    <h2><span class="mark">*</span> Welcome to Tokenlab</h2>
+    <p class="sub">Exact token counts, both-way conversion, honest pricing — in 3 steps:</p>
+    <ol class="steps">
+      <li><b>Paste text above</b> — see exact tokens, IDs and stats instantly.</li>
+      <li><b>Convert both ways</b> — words ⇄ tokens ⇄ characters, plus reply estimator.</li>
+      <li><b>Price it</b> — pick any of 60+ models, compare the cheapest 5.</li>
+    </ol>
+    <div class="toolbar">
+      <button id="btnWelcomeStart" class="primary">Load sample &amp; start</button>
+      <button id="btnWelcomeSkip">Skip</button>
+      <label class="sub" style="margin:0"><input type="checkbox" id="chkWelcomeHide" checked> Don't show again</label>
+    </div>
+  </div>
+</div>
+
+<script src="bpe.js"></script>
+<script src="models.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
